@@ -75,6 +75,7 @@ export const Login = async (req, res) => {
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" })
+        
 
         res.cookie("token", token, {
             httpOnly: true,
@@ -91,4 +92,21 @@ export const Login = async (req, res) => {
     } catch (error) {
         console.error("Login error:", error);
     }
+}
+
+//-----------------------------------------Getting Usere By Searching
+
+export const getUsers = async (req, res) => {
+    const keyword = req.query.search
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+    
+
+      const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+      res.send(users);
 }
